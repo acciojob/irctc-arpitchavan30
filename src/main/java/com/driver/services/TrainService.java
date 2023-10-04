@@ -70,9 +70,9 @@ public class TrainService {
                 Station ticketToStation = ticket.getToStation();
 
                 // Check if the ticket's from station is before the specified toStation
-                if (ticketFromStation.compareTo(toStation) < 0) {
+                if (ticketFromStation.equals(fromStation)) {
                     // Check if the ticket's to station is after the specified fromStation
-                    if (ticketToStation.compareTo(fromStation) > 0) {
+                    if (ticketToStation.equals(toStation)) {
                         // This ticket overlaps with the specified stations, so seats are booked
                         bookedSeats += ticket.getPassengersList().size();
                     }
