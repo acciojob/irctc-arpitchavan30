@@ -64,7 +64,7 @@ public class TrainService {
         List<Ticket> bookedTickets = train.getBookedTickets();
 
         int totalSeats = train.getNoOfSeats();
-        int bookedSeats = 0;
+        int b = 0;
 
         for(Ticket ticket : bookedTickets){
             Station ticketFromStation = ticket.getFromStation();
@@ -73,12 +73,12 @@ public class TrainService {
             if (ticketFromStation.compareTo(toStation) < 0) {
                 if (ticketToStation.compareTo(fromStation) > 0) {
                     // This ticket overlaps with the specified stations, so seats are booked
-                    bookedSeats += ticket.getPassengersList().size();
+                    b += ticket.getPassengersList().size();
                 }
             }
         }
 
-        return totalSeats - bookedSeats;
+        return totalSeats - b;
 
     }
 
@@ -123,7 +123,24 @@ public class TrainService {
         //We need to find out the age of the oldest person that is travelling the train
         //If there are no people travelling in that train you can return 0
 
-        return 0;
+        Optional<Train> trainOptional = trainRepository.findById(trainId);
+
+        Train train = trainOptional.get();
+        List<Ticket> bookedTickets = train.getBookedTickets();
+
+        if(bookedTickets.size()==0) return 0;
+
+        int oldestAge = 0;
+
+        for (Ticket ticket : bookedTickets) {
+            for (Passenger passenger : ticket.getPassengersList()) {
+                if (passenger.getAge() > oldestAge) {
+                    oldestAge = passenger.getAge();
+                }
+            }
+        }
+
+        return oldestAge;
     }
 
     public List<Integer> trainsBetweenAGivenTime(Station station, LocalTime startTime, LocalTime endTime){
@@ -134,7 +151,27 @@ public class TrainService {
         //in problem statement)
         //You can also assume the seconds and milli seconds value will be 0 in a LocalTime format.
 
-        return null;
+        List<Integer> trainIds = new ArrayList<>();
+
+        List<Train> allTrains = trainRepository.findAll();
+
+        for (Train train : allTrains) {
+            String[] stations = train.getRoute().split(",");
+
+            for (String routeStation : stations) {
+                if (routeStation.trim().equals(station.toString())) {
+                    LocalTime departureTime = train.getDepartureTime();
+
+                    if (departureTime.isAfter(startTime) && departureTime.isBefore(endTime)) {
+                        trainIds.add(train.getTrainId());
+                        break; // No need to continue checking other stations in this train
+                    }
+                }
+            }
+        }
+
+        return trainIds;
+
     }
 
 }
