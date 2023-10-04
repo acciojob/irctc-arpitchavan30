@@ -54,31 +54,36 @@ public class TrainService {
         //Inshort : a train has totalNo of seats and there are tickets from and to different locations
         //We need to find out the available seats between the given 2 stations.
 
-        Optional <Train> trainOptional = trainRepository.findById(seatAvailabilityEntryDto.getTrainId());
-        Train train = trainOptional.get();
+        Optional<Train> trainOptional = trainRepository.findById(seatAvailabilityEntryDto.getTrainId());
 
-        Station fromStation = seatAvailabilityEntryDto.getFromStation();
-        Station toStation = seatAvailabilityEntryDto.getToStation();
+        if (trainOptional.isPresent()) {
+            Train train = trainOptional.get();
+            List<Ticket> bookedTickets = train.getBookedTickets();
+            int totalSeats = train.getNoOfSeats();
+            int bookedSeats = 0;
 
-        // Assuming you have a method to retrieve booked tickets for a specific train
-        List<Ticket> bookedTickets = train.getBookedTickets();
+            Station fromStation = seatAvailabilityEntryDto.getFromStation();
+            Station toStation = seatAvailabilityEntryDto.getToStation();
 
-        int totalSeats = train.getNoOfSeats();
-        int b = 0;
+            for (Ticket ticket : bookedTickets) {
+                Station ticketFromStation = ticket.getFromStation();
+                Station ticketToStation = ticket.getToStation();
 
-        for(Ticket ticket : bookedTickets){
-            Station ticketFromStation = ticket.getFromStation();
-            Station ticketToStation = ticket.getToStation();
-
-            if (ticketFromStation.compareTo(toStation) < 0) {
-                if (ticketToStation.compareTo(fromStation) > 0) {
-                    // This ticket overlaps with the specified stations, so seats are booked
-                    b += ticket.getPassengersList().size();
+                // Check if the ticket's from station is before the specified toStation
+                if (ticketFromStation.compareTo(toStation) < 0) {
+                    // Check if the ticket's to station is after the specified fromStation
+                    if (ticketToStation.compareTo(fromStation) > 0) {
+                        // This ticket overlaps with the specified stations, so seats are booked
+                        bookedSeats += ticket.getPassengersList().size();
+                    }
                 }
             }
+
+            return totalSeats - bookedSeats;
         }
 
-        return totalSeats - b;
+        // If the train with the specified ID is not found, return an error code or throw an exception
+        return -1; // You can define a specific error code for "Train not found"
 
     }
 
